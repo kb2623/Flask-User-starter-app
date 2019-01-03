@@ -63,3 +63,71 @@ class UserProfileForm(FlaskForm):
     last_name = StringField('Last name', validators=[
         validators.DataRequired('Last name is required')])
     submit = SubmitField('Save')
+    
+class Unit(db.Model):
+	__tablename__ = "unit"
+	id = db.Column(db.Integer(), primary_key=True)
+	name = db.Column(db.String(50), unique=True, index=True)
+	items = db.relationship('Item', backref='unit', lazy=True)
+
+	def __init__(self, name):
+		self.name = name
+
+class Item(db.Model):
+	__tablename__ = "item"
+	id = db.Column(db.Integer(), primary_key=True)
+	unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=False)
+	name = db.Column(db.String(50), unique=True, index=True)
+	description = db.Column(db.Text)
+	supplys = db.relationship('Supply', backref='supply', lazy=True)
+
+	def __init__(self, name, description):
+		self.name = name
+		self.description = description
+
+class SupplyInfo(db.Model):
+	__tablename__ = 'supply_info'
+	id = db.Column(db.Integer(), primary_key=True)
+	supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
+	supply_id = db.Column(db.String(50), nullable=False, index=True)
+	supplys = db.relationship('Supply', backref='supply_info', lazy=True)
+	censuses = db.relationship('Census', backref='supply_info', lazy=True)
+
+	def __init__(self, supply_id):
+		self.supply_id = supply_id
+
+class Supply(db.Model):
+	__tablename__ = "supply"
+	id = db.Column(db.Integer(), primary_key=True)
+	item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+	supply_info_id = db.Column(db.Integer, db.ForeignKey('supply_info.id'))
+	new_no = db.Column(db.Float, nullable=False)
+
+	def __init__(self, new_no, supply_id):
+		self.new_no = new_no
+		self.supply_id = supply_id
+
+class Supplier(db.Model):
+	__tablename__ = "supplier"
+	id = db.Column(db.Integer(), primary_key=True)
+	name = db.Column(db.String(50), unique=True, index=True)
+	latitude = db.Column(db.Integer)
+	longitude = db.Column(db.Integer)
+	supplys_info = db.relationship('SupplyInfo', backref='supplier', lazy=True)
+
+	def __init__(self, name, latitude, longitude):
+		self.name = name
+		self.latitude = latitude
+		self.longitude = longitude
+
+class Census(db.Model):
+	__tablename__ = "census"
+	id = db.Column(db.Integer(), primary_key=True)
+	item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+	all_no = db.Column(db.Integer, nullable=False)
+	supply_info_id = db.Column(db.Integer, db.ForeignKey('supply_info.id'))
+
+	def __init__(self, all_no):
+		self.all_no = all_no
+        
+# vim: tabstop=3 noexpandtab shiftwidth=3 softtabstop=3
